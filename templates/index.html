@@ -12,37 +12,52 @@
 <body>
     <div class="container">
         <h1>Code Analysis Tool</h1>
-        <div class="input-toggle">
-            <button id="uploadToggle" class="toggle-btn active">Upload File</button>
-            <button id="pasteToggle" class="toggle-btn">Paste Code</button>
-        </div>
         
         <form id="uploadForm">
             <div id="uploadSection">
-                <label for="language">Select Language:</label>
-                <select id="language" name="language" required>
-                    <option value="auto">Auto Detect</option>
-                    <option value="python">Python</option>
-                    <option value="javascript">JavaScript</option>
-                    <option value="cpp">C++</option>
-                    <option value="java">Java</option>
-                    <option value="ruby">Ruby</option>
-                    <option value="go">Go</option>
-                    <option value="swift">Swift</option>
-                    <option value="php">PHP</option>
-                    <option value="csharp">C#</option>
-                </select>
-                <br>
-                <div id="fileInputSection">
-                    <label for="file">Upload Code File:</label>
-                    <input type="file" id="file" name="file">
+                <div class="top-controls">
+                    <div class="language-select">
+                        <label for="language">Select Language:</label>
+                        <select id="language" name="language" required>
+                            <option value="auto">Auto Detect</option>
+                            <option value="python">Python</option>
+                            <option value="javascript">JavaScript</option>
+                            <option value="cpp">C++</option>
+                            <option value="java">Java</option>
+                            <option value="ruby">Ruby</option>
+                            <option value="go">Go</option>
+                            <option value="swift">Swift</option>
+                            <option value="php">PHP</option>
+                            <option value="csharp">C#</option>
+                        </select>
+                    </div>
+                    
+                    <div class="file-input-container">
+                        <div class="file-upload-area">
+                            <label for="file" class="file-upload-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 8 12 3 17 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                <span>Choose a file or drag it here</span>
+                            </label>
+                            <input type="file" id="file" name="file" accept=".txt,.java,.js,.py,.r,.c,.cpp,.cs,.jl,.go,.pl,.m,.kt,.php,.rs,.rb,.lua,.ts,.sas,.hx,.lisp,.f,.scala,.as,.asm,.clj,.coffee,.dart,.cbl,.groovy,.ex,.erl,.pas,.hs,.swift,.rkt,.ml,.scm,.cr,.elm,.fs,.tcl,.vb,.vala,.adb,.m,.objc">
+                            <div class="file-info">
+                                <span class="file-name" id="file-name">No file chosen</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div id="editorSection" style="display: none;">
-                    <label for="codeEditor">Paste Your Code:</label>
-                    <textarea id="codeEditor"></textarea>
+                
+                <div class="input-section">
+                    <div class="editor-section">
+                        <label for="codeEditor">Paste Your Code:</label>
+                        <textarea id="codeEditor"></textarea>
+                    </div>
                 </div>
             </div>
-            <button type="submit">Analyze Code</button>
+            <button type="submit" class="analyze-btn">Analyze Code</button>
         </form>
         <div id="results"></div>
     </div>
