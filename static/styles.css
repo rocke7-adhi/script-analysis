@@ -196,3 +196,29 @@ pre {
 ::-webkit-scrollbar-thumb:hover {
     background: #555;
 }
+
+.imports {
+    background-color: #e8f5e9;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 15px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.imports ul {
+    list-style-type: none;
+    padding-left: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 0;
+}
+
+.imports li {
+    padding: 10px;
+    margin: 5px 0;
+    background-color: #fff;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 14px;
+    border: 1px solid rgba(0,0,0,0.1);
+}

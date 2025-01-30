@@ -23,8 +23,9 @@ def analyze_code(file_path, language):
             comment_symbol = "#"
             class_pattern = r'class\s+\w+'
             function_pattern = r'def\s+\w+'
-            method_pattern = r'\s+def\s+\w+\s*\(.*\)'  # Indented def for methods
+            method_pattern = r'\s+def\s+\w+\s*\(.*\)'
             object_pattern = r'\w+\s*=\s*\w+\('
+            import_pattern = r'^(?:from\s+\w+(?:\.\w+)*\s+import|\s*import\s+\w+(?:\s*,\s*\w+)*)'
             try:
                 result = subprocess.run(["pylint", file_path], capture_output=True, text=True)
                 analysis_output = result.stdout or "No issues found"
@@ -35,8 +36,9 @@ def analyze_code(file_path, language):
             comment_symbol = "//"
             class_pattern = r'class\s+\w+'
             function_pattern = r'function\s+\w+'
-            method_pattern = r'(async\s+)?[\w.]+\s*\(.*\)\s*{'  # Includes async methods
+            method_pattern = r'(async\s+)?[\w.]+\s*\(.*\)\s*{'
             object_pattern = r'(const|let|var)\s+\w+\s*=\s*new\s+\w+'
+            import_pattern = r'^(?:import\s+.*\s+from\s+[\'"].*[\'"]|require\s*\([\'"].*[\'"]\))'
             try:
                 result = subprocess.run(["jshint", file_path], capture_output=True, text=True)
                 analysis_output = result.stdout or "No issues found"
@@ -47,6 +49,7 @@ def analyze_code(file_path, language):
             comment_symbol = "//"
             class_pattern = r'class\s+\w+'
             function_pattern = r'\w+\s+\w+\(.*\)'
+            import_pattern = r'#include\s*[<"].*[>"]'
             try:
                 result = subprocess.run(["cppcheck", file_path], capture_output=True, text=True)
                 analysis_output = result.stdout or "No issues found"
@@ -59,6 +62,7 @@ def analyze_code(file_path, language):
             function_pattern = r'\w+\s+\w+\(.*\)'
             method_pattern = r'(public|private|protected)?\s+\w+\s+\w+\s*\(.*\)'
             object_pattern = r'\w+\s+\w+\s*=\s*new\s+\w+'
+            import_pattern = r'import\s+[\w.]+(?:\s*\*)?;'
             try:
                 result = subprocess.run(["javac", file_path], capture_output=True, text=True)
                 analysis_output = result.stdout or "No issues found"
@@ -69,6 +73,7 @@ def analyze_code(file_path, language):
             comment_symbol = "#"
             class_pattern = r'class\s+\w+'
             function_pattern = r'def\s+\w+'
+            import_pattern = r'^(?:require|require_relative|load)\s+[\'"].*[\'"]'
             try:
                 result = subprocess.run(["ruby", "-wc", file_path], capture_output=True, text=True)
                 analysis_output = result.stdout or "No issues found"
@@ -79,6 +84,7 @@ def analyze_code(file_path, language):
             comment_symbol = "//"
             class_pattern = r'type\s+\w+\s+struct'
             function_pattern = r'func\s+\w+'
+            import_pattern = r'import\s+(?:\([^)]+\)|"[^"]+")'
             try:
                 result = subprocess.run(["go", "vet", file_path], capture_output=True, text=True)
                 analysis_output = result.stdout or "No issues found"
@@ -89,6 +95,7 @@ def analyze_code(file_path, language):
             comment_symbol = "//"
             class_pattern = r'class\s+\w+'
             function_pattern = r'func\s+\w+'
+            import_pattern = r'import\s+\w+'
             try:
                 result = subprocess.run(["swiftc", file_path], capture_output=True, text=True)
                 analysis_output = result.stdout or "No issues found"
@@ -99,6 +106,7 @@ def analyze_code(file_path, language):
             comment_symbol = "//"
             class_pattern = r'class\s+\w+'
             function_pattern = r'function\s+\w+'
+            import_pattern = r'(?:require|include)(?:_once)?\s*\([\'"].*[\'"]\)'
             try:
                 result = subprocess.run(["php", "-l", file_path], capture_output=True, text=True)
                 analysis_output = result.stdout or "No issues found"
@@ -109,6 +117,7 @@ def analyze_code(file_path, language):
             comment_symbol = "//"
             class_pattern = r'class\s+\w+'
             function_pattern = r'\w+\s+\w+\(.*\)'
+            import_pattern = r'using\s+[\w.]+;'
             try:
                 result = subprocess.run(["csc", file_path], capture_output=True, text=True)
                 analysis_output = result.stdout or "No issues found"
@@ -125,6 +134,7 @@ def analyze_code(file_path, language):
         function_count = sum(1 for line in lines if re.search(function_pattern, line))
         method_count = sum(1 for line in lines if re.search(method_pattern, line))
         object_count = sum(1 for line in lines if re.search(object_pattern, line))
+        import_count = sum(1 for line in lines if re.search(import_pattern, line))
         
         # Find methods, classes, functions and comments
         methods = []
@@ -132,6 +142,7 @@ def analyze_code(file_path, language):
         classes = []
         functions = []
         comments = []
+        imports = []
         
         for line in lines:
             # Extract method names
@@ -162,6 +173,12 @@ def analyze_code(file_path, language):
             if object_match:
                 object_name = object_match.group().strip()
                 objects.append(object_name)
+            
+            # Extract imports
+            import_match = re.search(import_pattern, line)
+            if import_match:
+                import_statement = import_match.group().strip()
+                imports.append(import_statement)
         
         return {
             "output": analysis_output,
@@ -172,16 +189,19 @@ def analyze_code(file_path, language):
             "function_count": function_count,
             "method_count": method_count,
             "object_count": object_count,
+            "import_count": import_count,
             "methods": methods,
             "objects": objects,
             "classes": classes,
             "functions": functions,
             "comments": comments,
+            "imports": imports,
             "code_structure": {
                 "classes": class_count,
                 "functions": function_count,
                 "methods": method_count,
-                "objects": object_count
+                "objects": object_count,
+                "imports": import_count
             }
         }
     except Exception as e:

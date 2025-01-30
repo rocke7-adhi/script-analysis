@@ -32,6 +32,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
                     <p>Total Lines: ${data.total_lines}</p>
                     <p>Empty Lines: ${data.empty_lines}</p>
                     <p>Comment Lines: ${data.comment_lines}</p>
+                    <p>Import Count: ${data.import_count}</p>
                 </div>
                 
                 <div class="code-structure">
@@ -40,10 +41,20 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
                     <p>Functions: ${data.code_structure.functions}</p>
                     <p>Methods: ${data.code_structure.methods}</p>
                     <p>Objects: ${data.code_structure.objects}</p>
+                    <p>Imports: ${data.code_structure.imports}</p>
                 </div>
             </div>
 
             <div class="analysis-grid">
+                ${data.imports.length > 0 ? `
+                    <div class="imports">
+                        <h3>Imports Found</h3>
+                        <ul>
+                            ${data.imports.map(imp => `<li>${imp}</li>`).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+                
                 ${data.classes.length > 0 ? `
                     <div class="classes">
                         <h3>Classes Found</h3>
