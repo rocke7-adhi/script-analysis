@@ -223,6 +223,26 @@ def allowed_file(filename, language):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in [ext[1:] for ext in extensions.get(language, [])]
 
+# Add this function for auto-detecting language
+def detect_language(filename):
+    extension_map = {
+        '.py': 'python',
+        '.js': 'javascript',
+        '.cpp': 'cpp',
+        '.hpp': 'cpp',
+        '.h': 'cpp',
+        '.java': 'java',
+        '.rb': 'ruby',
+        '.go': 'go',
+        '.swift': 'swift',
+        '.php': 'php',
+        '.cs': 'csharp'
+    }
+    if '.' in filename:
+        ext = '.' + filename.rsplit('.', 1)[1].lower()
+        return extension_map.get(ext)
+    return None
+
 @app.route("/analyze", methods=["POST"])
 def analyze():
     if "file" not in request.files:
@@ -232,14 +252,21 @@ def analyze():
     if file.filename == '':
         return jsonify({"error": "No file selected"})
     
+    # Get language from form or auto-detect from file
     language = request.form.get("language")
-    if not language:
-        return jsonify({"error": "No language selected"})
+    if not language or language == "auto":
+        detected_language = detect_language(file.filename)
+        if not detected_language:
+            return jsonify({"error": "Could not detect language from file extension"})
+        language = detected_language
     
     if not allowed_file(file.filename, language):
         return jsonify({"error": f"Invalid file type for {language}"})
     
     try:
+        # Create uploads directory if it doesn't exist
+        os.makedirs("uploads", exist_ok=True)
+        
         file_path = os.path.join("uploads", file.filename)
         file.save(file_path)
         

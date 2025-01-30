@@ -1,13 +1,134 @@
+let editor;
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize CodeMirror
+    editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+        mode: 'python', // default mode
+        theme: 'monokai',
+        lineNumbers: true,
+        autoCloseBrackets: true,
+        matchBrackets: true,
+        indentUnit: 4,
+        tabSize: 4,
+        lineWrapping: true,
+        height: 'auto'
+    });
+
+    // Adjust editor height
+    editor.setSize(null, 300);
+
+    // Handle language change
+    document.getElementById('language').addEventListener('change', (e) => {
+        if (e.target.value !== 'auto') {
+            const modeMap = {
+                'python': 'python',
+                'javascript': 'javascript',
+                'cpp': 'text/x-c++src',
+                'java': 'text/x-java',
+                'ruby': 'ruby',
+                'go': 'go',
+                'swift': 'swift',
+                'php': 'php',
+                'csharp': 'text/x-csharp'
+            };
+            editor.setOption('mode', modeMap[e.target.value] || 'text/plain');
+        }
+    });
+
+    // Toggle between upload and paste
+    const uploadToggle = document.getElementById('uploadToggle');
+    const pasteToggle = document.getElementById('pasteToggle');
+    const fileInputSection = document.getElementById('fileInputSection');
+    const editorSection = document.getElementById('editorSection');
+
+    uploadToggle.addEventListener('click', () => {
+        uploadToggle.classList.add('active');
+        pasteToggle.classList.remove('active');
+        fileInputSection.style.display = 'block';
+        editorSection.style.display = 'none';
+    });
+
+    pasteToggle.addEventListener('click', () => {
+        pasteToggle.classList.add('active');
+        uploadToggle.classList.remove('active');
+        fileInputSection.style.display = 'none';
+        editorSection.style.display = 'block';
+        editor.refresh();
+    });
+});
+
+// Add this function to detect language from file extension
+function detectLanguageFromFile(filename) {
+    const extensionMap = {
+        '.py': 'python',
+        '.js': 'javascript',
+        '.cpp': 'cpp',
+        '.hpp': 'cpp',
+        '.h': 'cpp',
+        '.java': 'java',
+        '.rb': 'ruby',
+        '.go': 'go',
+        '.swift': 'swift',
+        '.php': 'php',
+        '.cs': 'csharp'
+    };
+    
+    const ext = '.' + filename.split('.').pop().toLowerCase();
+    return extensionMap[ext];
+}
+
+// Update the file input change handler
+document.getElementById('file').addEventListener('change', (e) => {
+    const fileInput = e.target;
+    const languageSelect = document.getElementById('language');
+    
+    if (fileInput.files.length > 0) {
+        const detectedLanguage = detectLanguageFromFile(fileInput.files[0].name);
+        if (detectedLanguage) {
+            // Update the language dropdown
+            languageSelect.value = detectedLanguage;
+            
+            // Update CodeMirror mode if editor is visible
+            if (editorSection.style.display !== 'none') {
+                const modeMap = {
+                    'python': 'python',
+                    'javascript': 'javascript',
+                    'cpp': 'text/x-c++src',
+                    'java': 'text/x-java',
+                    'ruby': 'ruby',
+                    'go': 'go',
+                    'swift': 'swift',
+                    'php': 'php',
+                    'csharp': 'text/x-csharp'
+                };
+                editor.setOption('mode', modeMap[detectedLanguage] || 'text/plain');
+            }
+        } else {
+            // If language cannot be detected, set to auto
+            languageSelect.value = 'auto';
+        }
+    }
+});
+
 document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const formData = new FormData();
-    const fileInput = document.getElementById('file');
     const languageSelect = document.getElementById('language');
     const resultsDiv = document.getElementById('results');
     
-    formData.append('file', fileInput.files[0]);
     formData.append('language', languageSelect.value);
+
+    // Check if we're using file upload or pasted code
+    const fileInput = document.getElementById('file');
+    if (fileInputSection.style.display !== 'none' && fileInput.files.length > 0) {
+        formData.append('file', fileInput.files[0]);
+    } else {
+        // Create a new Blob from the editor content
+        const codeContent = editor.getValue();
+        const blob = new Blob([codeContent], { type: 'text/plain' });
+        formData.append('file', blob, `code.${languageSelect.value}`);
+    }
     
     try {
         resultsDiv.innerHTML = 'Analyzing...';

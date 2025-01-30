@@ -222,3 +222,59 @@ pre {
     font-size: 14px;
     border: 1px solid rgba(0,0,0,0.1);
 }
+
+.input-toggle {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.toggle-btn {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.toggle-btn.active {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+}
+
+#editorSection {
+    margin-bottom: 20px;
+}
+
+/* CodeMirror customization */
+.CodeMirror {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.CodeMirror-gutters {
+    border-right: 1px solid #ddd;
+    background-color: #f8f9fa;
+}
+
+/* Make editor responsive */
+@media (max-width: 768px) {
+    .CodeMirror {
+        max-height: 200px;
+    }
+    
+    .input-toggle {
+        flex-direction: column;
+    }
+    
+    .toggle-btn {
+        width: 100%;
+    }
+}
