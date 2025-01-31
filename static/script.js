@@ -121,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             const data = await response.json();
+            window.analysisData = data; // Store the data globally
             
             if (data.error) {
                 resultsDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
@@ -211,6 +212,111 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             
             resultsDiv.innerHTML = resultsHTML;
+
+            // Show result actions when results are displayed
+            const showResultActions = () => {
+                document.querySelector('.result-actions').style.display = 'block';
+            };
+
+            // Share functionality
+            document.getElementById('emailShare').addEventListener('click', (e) => {
+                e.preventDefault();
+                const subject = 'Code Analysis Results';
+                const body = formatAnalysisResults(window.analysisData);
+                
+                // Limit the body length and clean up the content
+                const cleanBody = body
+                    .replace(/[^\x00-\x7F]/g, '') // Remove non-ASCII characters
+                    .substring(0, 2000); // Limit length to avoid URL length issues
+                
+                // Add a note if content was truncated
+                const truncationNote = body.length > 2000 ? 
+                    '\n\n[Content truncated. Please use export options for full results.]' : '';
+                
+                try {
+                    // Try the mailto link first
+                    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(cleanBody + truncationNote)}`;
+                } catch (error) {
+                    // Fallback: Copy to clipboard and show instructions
+                    navigator.clipboard.writeText(body).then(() => {
+                        alert('Analysis results copied to clipboard. Please paste into your email client.');
+                    }).catch(() => {
+                        // If clipboard fails, show content in a modal or alert
+                        alert('Please copy the analysis results from the page and paste into your email client.');
+                    });
+                }
+            });
+
+            document.getElementById('whatsappShare').addEventListener('click', (e) => {
+                e.preventDefault();
+                const text = formatAnalysisResults(data);
+                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+            });
+
+            // Export functionality
+            document.getElementById('exportPDF').addEventListener('click', async (e) => {
+                e.preventDefault();
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Set font and size
+                doc.setFont('helvetica');
+                doc.setFontSize(16);
+                
+                // Add title
+                doc.text('Code Analysis Results', 20, 20);
+                doc.setFontSize(12);
+                
+                // Get the formatted content
+                const content = formatAnalysisResults(data);
+                
+                // Split content into lines that fit the page width
+                const lines = doc.splitTextToSize(content, 170);
+                
+                let y = 30;
+                const pageHeight = doc.internal.pageSize.height;
+                
+                // Add lines with pagination
+                lines.forEach(line => {
+                    if (y > pageHeight - 20) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    doc.text(line, 20, y);
+                    y += 6;
+                });
+                
+                doc.save('analysis-results.pdf');
+            });
+
+            document.getElementById('exportTXT').addEventListener('click', (e) => {
+                e.preventDefault();
+                const content = formatAnalysisResults(data);
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'analysis-results.txt';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            });
+
+            document.getElementById('exportImage').addEventListener('click', (e) => {
+                e.preventDefault();
+                html2canvas(document.getElementById('results')).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'analysis-results.png';
+                    link.href = canvas.toDataURL();
+                    link.click();
+                });
+            });
+
+            // Update the results display to show actions
+            const originalResultsHTML = resultsDiv.innerHTML;
+            resultsDiv.innerHTML = originalResultsHTML;
+            showResultActions();
         } catch (error) {
             resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
         }
@@ -258,4 +364,41 @@ function detectLanguageFromContent(content) {
     // Implement content-based language detection logic here
     // This is a placeholder and should be replaced with actual implementation
     return null;
+}
+
+// Update the formatAnalysisResults function to be more email-friendly
+function formatAnalysisResults(data) {
+    if (!data) return 'No analysis data available.';
+    
+    try {
+        return `
+Code Analysis Results
+--------------------
+
+BASIC METRICS
+Total Lines: ${data.total_lines}
+Empty Lines: ${data.empty_lines}
+Comment Lines: ${data.comment_lines}
+Import Count: ${data.import_count}
+
+CODE STRUCTURE
+Classes: ${data.code_structure.classes}
+Functions: ${data.code_structure.functions}
+Methods: ${data.code_structure.methods}
+Objects: ${data.code_structure.objects}
+Imports: ${data.code_structure.imports}
+
+${data.imports.length > 0 ? `IMPORTS FOUND\n${data.imports.map(imp => `- ${imp}`).join('\n')}\n` : ''}
+${data.classes.length > 0 ? `\nCLASSES FOUND\n${data.classes.map(cls => `- ${cls}`).join('\n')}\n` : ''}
+${data.functions.length > 0 ? `\nFUNCTIONS FOUND\n${data.functions.map(func => `- ${func}`).join('\n')}\n` : ''}
+${data.methods.length > 0 ? `\nMETHODS FOUND\n${data.methods.map(method => `- ${method}`).join('\n')}\n` : ''}
+${data.objects.length > 0 ? `\nOBJECTS FOUND\n${data.objects.map(obj => `- ${obj}`).join('\n')}\n` : ''}
+${data.comments.length > 0 ? `\nCOMMENTS FOUND\n${data.comments.map(comment => `- ${comment}`).join('\n')}\n` : ''}
+
+ANALYSIS OUTPUT
+${data.output || 'No issues found'}`;
+    } catch (error) {
+        console.error('Error formatting results:', error);
+        return 'Error formatting analysis results. Please try exporting as PDF or TXT instead.';
+    }
 }
