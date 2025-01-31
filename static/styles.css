@@ -634,3 +634,85 @@ pre {
 .CodeMirror.CodeMirror-empty {
     color: #666;
 }
+
+.editor-toolbar {
+    display: flex;
+    gap: 10px;
+    padding: 8px;
+    background: #34495e;
+    border-bottom: 1px solid #2c3e50;
+}
+
+.editor-toolbar button {
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    min-width: 80px;
+    justify-content: center;
+}
+
+.editor-toolbar button.active {
+    background: rgba(255,255,255,0.2);
+    border-color: rgba(255,255,255,0.4);
+}
+
+.editor-toolbar button:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.3);
+}
+
+.editor-toolbar button svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    flex-shrink: 0;
+}
+
+/* Add styles for the wrap button text */
+.editor-toolbar button span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Theme selector styling */
+.editor-toolbar select {
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.editor-toolbar select:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.editor-toolbar select option {
+    background: #34495e;
+    color: white;
+}
+
+/* Add divider in toolbar */
+.editor-toolbar .divider {
+    width: 1px;
+    background: rgba(255,255,255,0.2);
+    margin: 0 8px;
+}
+
+/* Add transition for smoother toggle */
+.editor-toolbar button {
+    transition: all 0.2s ease;
+}
+

@@ -98,21 +98,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData();
         const resultsDiv = document.getElementById('results');
         const codeContent = editor.getValue();
+        const selectedLanguage = document.getElementById('language').value;
         
-        formData.append('language', languageSelect.value);
-
-        // If file is uploaded, use that; otherwise use editor content
-        if (fileInput.files.length > 0) {
-            formData.append('file', fileInput.files[0]);
-        } else if (codeContent.trim()) {
-            const blob = new Blob([codeContent], { type: 'text/plain' });
-            formData.append('file', blob, `code.${languageSelect.value}`);
-        } else {
-            resultsDiv.innerHTML = `<div class="error">Please either upload a file or paste code</div>`;
+        if (!codeContent.trim()) {
+            resultsDiv.innerHTML = `<div class="error">Please enter some code</div>`;
             return;
         }
         
         try {
+            // Create a file from the editor content
+            const extension = getFileExtension(selectedLanguage);
+            const blob = new Blob([codeContent], { type: 'text/plain' });
+            const file = new File([blob], `code${extension}`, { type: 'text/plain' });
+            
+            formData.append('file', file);
+            formData.append('language', selectedLanguage);
+            
             resultsDiv.innerHTML = 'Analyzing...';
             
             const response = await fetch('/analyze', {
@@ -121,7 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             const data = await response.json();
-            window.analysisData = data; // Store the data globally
             
             if (data.error) {
                 resultsDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
@@ -321,6 +321,153 @@ document.addEventListener('DOMContentLoaded', () => {
             resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
         }
     });
+
+    // Format code button
+    document.getElementById('formatCode').addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        try {
+            const mode = editor.getMode().name;
+            let code = editor.getValue();
+            
+            if (!code.trim()) {
+                return; // Don't format empty code
+            }
+            
+            // Basic formatting for different languages
+            switch (mode) {
+                case 'javascript':
+                    // Basic JS formatting
+                    code = code.replace(/[{]/g, ' {\n    ')
+                             .replace(/[}]/g, '\n}\n')
+                             .replace(/;/g, ';\n')
+                             .replace(/\n\s*\n/g, '\n\n'); // Remove extra newlines
+                    break;
+                    
+                case 'python':
+                    // Basic Python formatting
+                    code = code.replace(/:\s*/g, ':\n    ')
+                             .replace(/\n\s*\n/g, '\n\n')
+                             .replace(/([^:]);/g, '$1\n'); // Add newlines after statements
+                    break;
+                    
+                default:
+                    // Generic formatting for other languages
+                    code = code.replace(/[{]/g, ' {\n    ')
+                             .replace(/[}]/g, '\n}\n')
+                             .replace(/;/g, ';\n')
+                             .replace(/\n\s*\n/g, '\n\n');
+            }
+            
+            // Update editor content
+            editor.setValue(code);
+            
+            // Auto indent all lines
+            const totalLines = editor.lineCount();
+            for (let i = 0; i < totalLines; i++) {
+                editor.indentLine(i);
+            }
+            
+            // Refresh the editor to update the display
+            editor.refresh();
+            
+        } catch (error) {
+            console.error('Formatting failed:', error);
+        }
+    });
+
+    document.getElementById('copyCode').addEventListener('click', () => {
+        navigator.clipboard.writeText(editor.getValue())
+            .then(() => {
+                const btn = document.getElementById('copyCode');
+                btn.innerHTML = '<svg>...</svg>Copied!';
+                setTimeout(() => {
+                    btn.innerHTML = '<svg>...</svg>Copy';
+                }, 2000);
+            });
+    });
+
+    document.getElementById('clearCode').addEventListener('click', () => {
+        if (confirm('Are you sure you want to clear the editor?')) {
+            editor.setValue('');
+        }
+    });
+
+    // Update keyboard shortcuts - remove save-related shortcuts
+    editor.setOption('extraKeys', {
+        'Ctrl-F': (cm) => {
+            document.getElementById('formatCode').click();
+        },
+        'Ctrl-/': (cm) => {
+            const selections = cm.getSelections();
+            const mode = cm.getMode().name;
+            const comment = mode === 'python' ? '#' : '//';
+            
+            const newSelections = selections.map(selection => {
+                const lines = selection.split('\n');
+                const commentedLines = lines.map(line => {
+                    if (line.trimStart().startsWith(comment)) {
+                        return line.replace(new RegExp(`^(\\s*)${comment}\\s?`), '$1');
+                    }
+                    return line.replace(/^(\s*)/, `$1${comment} `);
+                });
+                return commentedLines.join('\n');
+            });
+            
+            cm.replaceSelections(newSelections);
+        }
+    });
+
+    // Update theme select without localStorage
+    document.getElementById('themeSelect').addEventListener('change', (e) => {
+        const theme = e.target.value;
+        editor.setOption('theme', theme);
+    });
+
+    // Update font size select without localStorage
+    document.getElementById('fontSizeSelect').addEventListener('change', (e) => {
+        const fontSize = e.target.value + 'px';
+        document.querySelector('.CodeMirror').style.fontSize = fontSize;
+    });
+
+    // Reset everything on page load
+    window.addEventListener('load', () => {
+        editor.setValue('');
+        document.getElementById('language').value = 'auto';
+        document.getElementById('themeSelect').value = 'monokai';
+        document.getElementById('fontSizeSelect').value = '14';
+        editor.setOption('theme', 'monokai');
+        document.querySelector('.CodeMirror').style.fontSize = '14px';
+    });
+
+    // Indent code button
+    document.getElementById('indentCode').addEventListener('click', (e) => {
+        e.preventDefault(); // Prevent form submission
+        const totalLines = editor.lineCount();
+        editor.operation(() => {
+            for (let i = 0; i < totalLines; i++) {
+                editor.indentLine(i);
+            }
+        });
+        editor.refresh(); // Refresh editor after indenting
+    });
+
+    // Add this to prevent form submission when clicking editor toolbar buttons
+    document.querySelector('.editor-toolbar').addEventListener('click', (e) => {
+        if (e.target.closest('button')) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    });
+
+    // Update language detection for pasted code
+    document.getElementById('language').addEventListener('change', (e) => {
+        const selectedLanguage = e.target.value;
+        if (selectedLanguage !== 'auto') {
+            editor.setOption('mode', getEditorMode(selectedLanguage));
+        }
+    });
 });
 
 // Helper function to get editor mode
@@ -358,6 +505,23 @@ function detectLanguageFromFile(filename) {
     const ext = '.' + filename.split('.').pop().toLowerCase();
     return extensionMap[ext];
 }
+
+// Add this helper function to get file extension
+function getFileExtension(language) {
+    const extensionMap = {
+        'python': '.py',
+        'javascript': '.js',
+        'cpp': '.cpp',
+        'java': '.java',
+        'ruby': '.rb',
+        'go': '.go',
+        'swift': '.swift',
+        'php': '.php',
+        'csharp': '.cs'
+    };
+    return extensionMap[language] || '.txt';
+}
+
 
 // Add this function to detect language from content
 function detectLanguageFromContent(content) {
@@ -402,3 +566,4 @@ ${data.output || 'No issues found'}`;
         return 'Error formatting analysis results. Please try exporting as PDF or TXT instead.';
     }
 }
+
