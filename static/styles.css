@@ -527,3 +527,110 @@ pre {
         padding: 15px;
     }
 }
+
+/* CodeMirror Editor Styling */
+.editor-section {
+    margin: 20px 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.editor-section label {
+    display: block;
+    padding: 12px 15px;
+    background: #2c3e50;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px 8px 0 0;
+    margin: 0;
+}
+
+.CodeMirror {
+    height: calc(70vh - 200px) !important;
+    min-height: 300px;
+    font-family: 'Fira Code', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 10px 0;
+    background-color: #282c34;
+}
+
+/* CodeMirror Theme Customization */
+.cm-s-monokai.CodeMirror {
+    border: 1px solid #1e1e1e;
+}
+
+.CodeMirror-gutters {
+    border-right: 1px solid #3a3a3a;
+    background-color: #2c3e50;
+    padding-right: 8px;
+}
+
+.CodeMirror-linenumber {
+    color: #606060;
+    padding: 0 8px;
+}
+
+.CodeMirror-cursor {
+    border-left: 2px solid #fff;
+}
+
+/* Active Line Highlight */
+.CodeMirror-activeline-background {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.CodeMirror-selected {
+    background: #3e4451 !important;
+}
+
+/* Scrollbar Styling for CodeMirror */
+.CodeMirror-scrollbar-filler {
+    background-color: transparent;
+}
+
+.CodeMirror-simplescroll-horizontal div,
+.CodeMirror-simplescroll-vertical div {
+    background-color: #4a4a4a;
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .CodeMirror {
+        height: 50vh !important;
+        min-height: 200px;
+        font-size: 13px;
+    }
+
+    .editor-section label {
+        font-size: 13px;
+        padding: 10px 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .CodeMirror {
+        height: 40vh !important;
+        font-size: 12px;
+    }
+}
+
+/* Add smooth transitions */
+.CodeMirror {
+    transition: all 0.3s ease;
+}
+
+/* Focus state enhancement */
+.CodeMirror.CodeMirror-focused {
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+}
+
+/* Placeholder styling */
+.CodeMirror.CodeMirror-empty {
+    color: #666;
+}
