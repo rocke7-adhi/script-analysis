@@ -91,30 +91,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Form submission handler
+    // Add loading state handling
+    function showLoading() {
+        document.querySelector('.loading-overlay').style.display = 'flex';
+        document.querySelector('.loading-progress-bar').style.width = '0%';
+    }
+
+    function hideLoading() {
+        document.querySelector('.loading-overlay').style.display = 'none';
+    }
+
+    // Update the form submission handler
     document.getElementById('uploadForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const formData = new FormData();
         const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = ''; // Clear previous results
+        showLoading(); // Show loading overlay
+        
+        const formData = new FormData();
         const codeContent = editor.getValue();
         const selectedLanguage = document.getElementById('language').value;
         
         if (!codeContent.trim()) {
-            resultsDiv.innerHTML = `<div class="error">Please enter some code</div>`;
+            hideLoading();
+            resultsDiv.innerHTML = `<div class="error fade-in">Please enter some code</div>`;
             return;
         }
         
         try {
-            // Create a file from the editor content
             const extension = getFileExtension(selectedLanguage);
             const blob = new Blob([codeContent], { type: 'text/plain' });
             const file = new File([blob], `code${extension}`, { type: 'text/plain' });
             
             formData.append('file', file);
             formData.append('language', selectedLanguage);
-            
-            resultsDiv.innerHTML = 'Analyzing...';
             
             const response = await fetch('/analyze', {
                 method: 'POST',
@@ -123,8 +134,13 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const data = await response.json();
             
+// Start 10-second loading animation
+            
+            document.querySelector('.loading-progress-bar').style.animation = 'progress 5s linear forwards';
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            
             if (data.error) {
-                resultsDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                resultsDiv.innerHTML = `<div class="error fade-in">Error: ${data.error}</div>`;
                 return;
             }
             
@@ -212,6 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             
             resultsDiv.innerHTML = resultsHTML;
+            resultsDiv.classList.add('fade-in');
 
             // Show result actions when results are displayed
             const showResultActions = () => {
@@ -318,7 +335,14 @@ document.addEventListener('DOMContentLoaded', () => {
             resultsDiv.innerHTML = originalResultsHTML;
             showResultActions();
         } catch (error) {
-            resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            resultsDiv.innerHTML = `<div class="error fade-in">Error: ${error.message}</div>`;
+        } finally {
+            hideLoading();
+            // Reset progress bar animation
+            const progressBar = document.querySelector('.loading-progress-bar');
+            progressBar.style.animation = 'none';
+            progressBar.offsetHeight; // Trigger reflow
+            progressBar.style.animation = '';
         }
     });
 
@@ -473,17 +497,57 @@ document.addEventListener('DOMContentLoaded', () => {
 // Helper function to get editor mode
 function getEditorMode(language) {
     const modeMap = {
-        'python': 'python',
-        'javascript': 'javascript',
-        'cpp': 'text/x-c++src',
-        'java': 'text/x-java',
-        'ruby': 'ruby',
-        'go': 'go',
-        'swift': 'swift',
-        'php': 'php',
-        'csharp': 'text/x-csharp'
+        'python': {
+            mode: 'python',
+            mime: 'text/x-python',
+            indentUnit: 4
+        },
+        'javascript': {
+            mode: 'javascript',
+            mime: 'text/javascript',
+            indentUnit: 2
+        },
+        'cpp': {
+            mode: 'clike',
+            mime: 'text/x-c++src',
+            indentUnit: 4
+        },
+        'java': {
+            mode: 'clike',
+            mime: 'text/x-java',
+            indentUnit: 4
+        },
+        'ruby': {
+            mode: 'ruby',
+            mime: 'text/x-ruby',
+            indentUnit: 2
+        },
+        'go': {
+            mode: 'go',
+            mime: 'text/x-go',
+            indentUnit: 4
+        },
+        'swift': {
+            mode: 'swift',
+            mime: 'text/x-swift',
+            indentUnit: 4
+        },
+        'php': {
+            mode: 'php',
+            mime: 'application/x-httpd-php',
+            indentUnit: 4
+        },
+        'csharp': {
+            mode: 'clike',
+            mime: 'text/x-csharp',
+            indentUnit: 4
+        }
     };
-    return modeMap[language] || 'text/plain';
+    
+    const config = modeMap[language] || { mode: 'text/plain', indentUnit: 4 };
+    editor.setOption('mode', config.mime);
+    editor.setOption('indentUnit', config.indentUnit);
+    return config.mode;
 }
 
 // Add this function to detect language from file extension
@@ -525,9 +589,72 @@ function getFileExtension(language) {
 
 // Add this function to detect language from content
 function detectLanguageFromContent(content) {
-    // Implement content-based language detection logic here
-    // This is a placeholder and should be replaced with actual implementation
-    return null;
+    const patterns = {
+        python: {
+            keywords: /\b(def|class|import|from|if|for|while|try|except|with|async|await)\b/,
+            syntax: /:\s*$/m,
+            imports: /^(?:from\s+\w+(?:\.\w+)*\s+import|\s*import\s+\w+)/m
+        },
+        javascript: {
+            keywords: /\b(function|const|let|var|if|for|while|try|catch|class|import|export)\b/,
+            syntax: /[{};]/,
+            imports: /^(?:import\s+.*\s+from\s+[\'"].*[\'"]|require\s*\([\'"].*[\'"]\))/m
+        },
+        cpp: {
+            keywords: /\b(class|struct|namespace|template|public|private|protected)\b/,
+            syntax: /::|->|<>/,
+            includes: /#include\s*[<"]/
+        },
+        java: {
+            keywords: /\b(public|private|protected|class|interface|extends|implements|package)\b/,
+            syntax: /;$/m,
+            imports: /^import\s+[\w.]+(?:\s*\*)?;/m
+        },
+        ruby: {
+            keywords: /\b(def|class|module|require|include|attr_accessor)\b/,
+            syntax: /end$/m,
+            requires: /^require\s+[\'"].*[\'"]/
+        },
+        go: {
+            keywords: /\b(func|type|struct|interface|package|import|go|chan|defer)\b/,
+            syntax: /:\=|<-/,
+            imports: /^import\s+(?:\([^)]+\)|"[^"]+")/m
+        },
+        swift: {
+            keywords: /\b(class|struct|enum|protocol|extension|guard|let|var)\b/,
+            syntax: /->|@/,
+            imports: /^import\s+\w+/m
+        },
+        php: {
+            keywords: /\b(function|class|namespace|use|public|private|protected)\b/,
+            syntax: /\$\w+|<?php/,
+            imports: /^(?:require|include)(?:_once)?\s*\([\'"].*[\'"]\)/m
+        },
+        csharp: {
+            keywords: /\b(class|namespace|using|public|private|protected|async|await)\b/,
+            syntax: /;$/m,
+            imports: /^using\s+[\w.]+;/m
+        }
+    };
+
+    // Score each language based on matches
+    const scores = Object.entries(patterns).map(([lang, pattern]) => {
+        let score = 0;
+        const contentSample = content.slice(0, 1000); // Check first 1000 chars
+
+        if (pattern.keywords.test(contentSample)) score += 2;
+        if (pattern.syntax.test(contentSample)) score += 1;
+        if (pattern.imports?.test(contentSample)) score += 3;
+
+        return { language: lang, score };
+    });
+
+    // Return the language with highest score
+    const bestMatch = scores.reduce((max, curr) => 
+        curr.score > max.score ? curr : max
+    );
+
+    return bestMatch.score > 2 ? bestMatch.language : null;
 }
 
 // Update the formatAnalysisResults function to be more email-friendly
