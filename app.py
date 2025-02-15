@@ -2,6 +2,10 @@ from flask import Flask, request, jsonify, render_template
 import os
 import subprocess
 import re
+import ast
+from radon.complexity import cc_visit
+from radon.metrics import mi_visit
+from radon.raw import analyze
 
 app = Flask(__name__)
 
@@ -180,7 +184,11 @@ def analyze_code(file_path, language):
                 import_statement = import_match.group().strip()
                 imports.append(import_statement)
         
-        return {
+        # Add complexity analysis
+        complexity_metrics = analyze_code_complexity(content, language)
+        
+        # Add complexity metrics to the result
+        result = {
             "output": analysis_output,
             "total_lines": total_lines,
             "empty_lines": empty_lines,
@@ -202,8 +210,17 @@ def analyze_code(file_path, language):
                 "methods": method_count,
                 "objects": object_count,
                 "imports": import_count
+            },
+            "complexity_analysis": {
+                "cyclomatic_complexity": complexity_metrics['cyclomatic_complexity'],
+                "max_nesting_depth": complexity_metrics['max_nesting_depth'],
+                "cognitive_complexity": complexity_metrics['cognitive_complexity'],
+                "maintainability_index": complexity_metrics['maintainability_index'],
+                "difficulty_score": complexity_metrics['difficulty_score']
             }
         }
+        
+        return result
     except Exception as e:
         return {"error": str(e)}
 
@@ -280,6 +297,117 @@ def analyze():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+def analyze_code_complexity(content, language):
+    """Analyze code complexity metrics"""
+    try:
+        # Basic complexity metrics
+        complexity_metrics = {
+            'cyclomatic_complexity': 0,
+            'max_nesting_depth': 0,
+            'cognitive_complexity': 0,
+            'maintainability_index': 0,
+            'difficulty_score': 0
+        }
+
+        if language == "python":
+            # Use radon for Python complexity analysis
+            results = cc_visit(content)
+            complexity_metrics['cyclomatic_complexity'] = sum(result.complexity for result in results)
+            complexity_metrics['maintainability_index'] = mi_visit(content, multi=True)
+            
+            # Calculate max nesting depth
+            tree = ast.parse(content)
+            complexity_metrics['max_nesting_depth'] = get_max_nesting_depth(tree)
+            
+        else:
+            # Basic complexity analysis for other languages
+            lines = content.split('\n')
+            current_depth = 0
+            max_depth = 0
+            
+            # Language-specific patterns for nesting detection
+            nesting_patterns = {
+                'javascript': ['{', '}'],
+                'java': ['{', '}'],
+                'cpp': ['{', '}'],
+                'csharp': ['{', '}'],
+                'php': ['{', '}'],
+                'ruby': ['do|{|begin|if|unless|case', 'end|},'],
+                'swift': ['{', '}'],
+                'go': ['{', '}'],
+            }
+            
+            open_pattern, close_pattern = nesting_patterns.get(language, ['{', '}'])
+            
+            for line in lines:
+                line = line.strip()
+                if re.search(f'.*{open_pattern}.*', line):
+                    current_depth += 1
+                    max_depth = max(max_depth, current_depth)
+                if re.search(f'.*{close_pattern}.*', line):
+                    current_depth = max(0, current_depth - 1)
+            
+            complexity_metrics['max_nesting_depth'] = max_depth
+            
+            # Calculate basic cyclomatic complexity
+            decision_patterns = [
+                r'\bif\b', r'\bwhile\b', r'\bfor\b', r'\bforeach\b',
+                r'\bcase\b', r'\bcatch\b', r'\b\|\|\b', r'\b&&\b'
+            ]
+            
+            complexity = 1  # Base complexity
+            for pattern in decision_patterns:
+                complexity += len(re.findall(pattern, content))
+            
+            complexity_metrics['cyclomatic_complexity'] = complexity
+            
+            # Calculate cognitive complexity
+            cognitive_patterns = [
+                r'\bif\b', r'\belse\b', r'\bwhile\b', r'\bfor\b',
+                r'\bforeach\b', r'\bcase\b', r'\bcatch\b', r'\btry\b',
+                r'\?', r':\b', r'\b\|\|\b', r'\b&&\b'
+            ]
+            
+            cognitive_score = 0
+            for pattern in cognitive_patterns:
+                cognitive_score += len(re.findall(pattern, content))
+            
+            complexity_metrics['cognitive_complexity'] = cognitive_score
+            
+            # Calculate difficulty score (Halstead difficulty)
+            operators = len(re.findall(r'[+\-*/=<>!&|^~%]|\b(if|else|while|for|return)\b', content))
+            operands = len(re.findall(r'\b[a-zA-Z_]\w*\b', content))
+            unique_operators = len(set(re.findall(r'[+\-*/=<>!&|^~%]|\b(if|else|while|for|return)\b', content)))
+            unique_operands = len(set(re.findall(r'\b[a-zA-Z_]\w*\b', content)))
+            
+            if unique_operands != 0:
+                difficulty = (unique_operators / 2) * (operands / unique_operands)
+                complexity_metrics['difficulty_score'] = round(difficulty, 2)
+
+        return complexity_metrics
+        
+    except Exception as e:
+        return {
+            'cyclomatic_complexity': 0,
+            'max_nesting_depth': 0,
+            'cognitive_complexity': 0,
+            'maintainability_index': 0,
+            'difficulty_score': 0,
+            'error': str(e)
+        }
+
+def get_max_nesting_depth(node, current_depth=0):
+    """Calculate maximum nesting depth for Python AST"""
+    max_depth = current_depth
+    for child in ast.iter_child_nodes(node):
+        if isinstance(child, (ast.If, ast.For, ast.While, ast.Try, ast.With)):
+            child_depth = get_max_nesting_depth(child, current_depth + 1)
+            max_depth = max(max_depth, child_depth)
+        else:
+            child_depth = get_max_nesting_depth(child, current_depth)
+            max_depth = max(max_depth, child_depth)
+    return max_depth
 
 if __name__ == "__main__":
     os.makedirs("uploads", exist_ok=True)

@@ -1,6 +1,7 @@
 let editor;
 
 document.addEventListener('DOMContentLoaded', () => {
+
     // Initialize CodeMirror
     editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
         mode: 'python',
@@ -145,85 +146,118 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             let resultsHTML = `
-                <h2>Analysis Results</h2>
-                <div class="analysis-grid">
-                    <div class="metrics">
-                        <h3>Basic Metrics</h3>
-                        <p>Total Lines: ${data.total_lines}</p>
-                        <p>Empty Lines: ${data.empty_lines}</p>
-                        <p>Comment Lines: ${data.comment_lines}</p>
-                        <p>Import Count: ${data.import_count}</p>
+                <div class="results-container fade-in">
+                    <h2>Analysis Results</h2>
+                    <div class="analysis-grid">
+                        <div class="metrics">
+                            <h3>Basic Metrics</h3>
+                            <p>Total Lines: ${data.total_lines}</p>
+                            <p>Empty Lines: ${data.empty_lines}</p>
+                            <p>Comment Lines: ${data.comment_lines}</p>
+                            <p>Import Count: ${data.import_count}</p>
+                        </div>
+                        
+                        <div class="code-structure">
+                            <h3>Code Structure</h3>
+                            <p>Classes: ${data.code_structure.classes}</p>
+                            <p>Functions: ${data.code_structure.functions}</p>
+                            <p>Methods: ${data.code_structure.methods}</p>
+                            <p>Objects: ${data.code_structure.objects}</p>
+                            <p>Imports: ${data.code_structure.imports}</p>
+                        </div>
                     </div>
-                    
-                    <div class="code-structure">
-                        <h3>Code Structure</h3>
-                        <p>Classes: ${data.code_structure.classes}</p>
-                        <p>Functions: ${data.code_structure.functions}</p>
-                        <p>Methods: ${data.code_structure.methods}</p>
-                        <p>Objects: ${data.code_structure.objects}</p>
-                        <p>Imports: ${data.code_structure.imports}</p>
-                    </div>
-                </div>
 
-                <div class="analysis-grid">
-                    ${data.imports.length > 0 ? `
-                        <div class="imports">
-                            <h3>Imports Found</h3>
-                            <ul>
-                                ${data.imports.map(imp => `<li>${imp}</li>`).join('')}
-                            </ul>
+                    <div class="analysis-section complexity">
+                        <h3>Code Complexity Analysis</h3>
+                        <div class="metric-item">
+                            <span class="metric-label">Cyclomatic Complexity</span>
+                            <span class="metric-value">${data.complexity_analysis.cyclomatic_complexity}</span>
+                            <span class="metric-info" title="Measures the number of linearly independent paths through the code">ⓘ</span>
                         </div>
-                    ` : ''}
-                    
-                    ${data.classes.length > 0 ? `
-                        <div class="classes">
-                            <h3>Classes Found</h3>
-                            <ul>
-                                ${data.classes.map(cls => `<li>${cls}</li>`).join('')}
-                            </ul>
+                        <div class="metric-item">
+                            <span class="metric-label">Maximum Nesting Depth</span>
+                            <span class="metric-value">${data.complexity_analysis.max_nesting_depth}</span>
+                            <span class="metric-info" title="The deepest level of nested code blocks">ⓘ</span>
                         </div>
-                    ` : ''}
-                    
-                    ${data.functions.length > 0 ? `
-                        <div class="functions">
-                            <h3>Functions Found</h3>
-                            <ul>
-                                ${data.functions.map(func => `<li>${func}</li>`).join('')}
-                            </ul>
+                        <div class="metric-item">
+                            <span class="metric-label">Cognitive Complexity</span>
+                            <span class="metric-value">${data.complexity_analysis.cognitive_complexity}</span>
+                            <span class="metric-info" title="Measures how difficult the code is to understand">ⓘ</span>
                         </div>
-                    ` : ''}
-                    
-                    ${data.methods.length > 0 ? `
-                        <div class="methods">
-                            <h3>Methods Found</h3>
-                            <ul>
-                                ${data.methods.map(method => `<li>${method}</li>`).join('')}
-                            </ul>
+                        <div class="metric-item">
+                            <span class="metric-label">Maintainability Index</span>
+                            <span class="metric-value">${data.complexity_analysis.maintainability_index}</span>
+                            <span class="metric-info" title="Higher values indicate better maintainability">ⓘ</span>
                         </div>
-                    ` : ''}
-                    
-                    ${data.objects.length > 0 ? `
-                        <div class="objects">
-                            <h3>Objects Found</h3>
-                            <ul>
-                                ${data.objects.map(obj => `<li>${obj}</li>`).join('')}
-                            </ul>
+                        <div class="metric-item">
+                            <span class="metric-label">Difficulty Score</span>
+                            <span class="metric-value">${data.complexity_analysis.difficulty_score}</span>
+                            <span class="metric-info" title="Based on Halstead complexity measures">ⓘ</span>
                         </div>
-                    ` : ''}
-                </div>
-
-                ${data.comments.length > 0 ? `
-                    <div class="comments">
-                        <h3>Comments Found</h3>
-                        <ul>
-                            ${data.comments.map(comment => `<li>${comment}</li>`).join('')}
-                        </ul>
                     </div>
-                ` : ''}
-                
-                <div class="output">
-                    <h3>Analysis Output</h3>
-                    <pre>${data.output || 'No issues found'}</pre>
+
+                    <div class="analysis-grid">
+                        ${data.imports.length > 0 ? `
+                            <div class="imports">
+                                <h3>Imports Found</h3>
+                                <ul>
+                                    ${data.imports.map(imp => `<li>${imp}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                        
+                        ${data.classes.length > 0 ? `
+                            <div class="classes">
+                                <h3>Classes Found</h3>
+                                <ul>
+                                    ${data.classes.map(cls => `<li>${cls}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                        
+                        ${data.functions.length > 0 ? `
+                            <div class="functions">
+                                <h3>Functions Found</h3>
+                                <ul>
+                                    ${data.functions.map(func => `<li>${func}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                        
+                        ${data.methods.length > 0 ? `
+                            <div class="methods">
+                                <h3>Methods Found</h3>
+                                <ul>
+                                    ${data.methods.map(method => `<li>${method}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                        
+                        ${data.objects.length > 0 ? `
+                            <div class="objects">
+                                <h3>Objects Found</h3>
+                                <ul>
+                                    ${data.objects.map(obj => `<li>${obj}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    ${data.comments.length > 0 ? `
+                        <div class="comments">
+                            <h3>Comments Found</h3>
+                            <ul>
+                                ${data.comments.map(comment => `<li>${comment}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    
+                    
+                    
+                    <div class="output">
+                        <h3>Analysis Output</h3>
+                        <pre>${data.output || 'No issues found'}</pre>
+                    </div>
                 </div>
             `;
             
@@ -234,6 +268,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const showResultActions = () => {
                 document.querySelector('.result-actions').style.display = 'block';
             };
+            // block the action buttons from submitting the form
+            const actionButtons = document.querySelectorAll('.action-btn, .dropdown-content a');
+    
+            actionButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false; // Prevent form submission
+                });
+            });
 
             // Share functionality
             document.getElementById('emailShare').addEventListener('click', (e) => {

@@ -829,3 +829,58 @@ pre {
     box-shadow: 0 8px 20px rgba(0,0,0,0.1);
 }
 
+/* Update styles for complexity metrics */
+.analysis-section.complexity {
+    background: #f8f9fa;
+    border-left: 4px solid #17a2b8;
+    margin: 20px 0;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    grid-column: 1 / -1; /* Make it span full width */
+}
+
+.metric-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    background: white;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.metric-label {
+    flex: 1;
+    color: #495057;
+    font-weight: 500;
+}
+
+.metric-value {
+    color: #2c3e50;
+    font-weight: 600;
+    margin: 0 15px;
+}
+
+.metric-info {
+    color: #17a2b8;
+    cursor: help;
+    font-size: 14px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(23, 162, 184, 0.1);
+}
+
+/* Update heading styles */
+.analysis-section h3 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+    font-size: 1.2rem;
+}
+
