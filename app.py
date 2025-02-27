@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session, redirect, url_for
 import os
 import subprocess
 import re
@@ -6,8 +6,10 @@ import ast
 from radon.complexity import cc_visit
 from radon.metrics import mi_visit
 from radon.raw import analyze
+import secrets
 
 app = Flask(__name__)
+app.secret_key = secrets.token_hex(16)  # Required for session management
 
 # Function to analyze code based on file type
 def analyze_code(file_path, language):
@@ -214,10 +216,9 @@ def analyze_code(file_path, language):
             "complexity_analysis": {
                 "cyclomatic_complexity": complexity_metrics['cyclomatic_complexity'],
                 "max_nesting_depth": complexity_metrics['max_nesting_depth'],
-                "cognitive_complexity": complexity_metrics['cognitive_complexity'],
                 "maintainability_index": complexity_metrics['maintainability_index'],
-                "difficulty_score": complexity_metrics['difficulty_score']
             }
+
         }
         
         return result
@@ -296,7 +297,25 @@ def analyze():
 
 @app.route('/')
 def index():
+    """Route handler for the home page"""
+    # Check if this is the user's first visit
+    if not session.get('has_visited'):
+        # First visit - mark as visited and redirect to getstarted
+        session['has_visited'] = True
+        return redirect(url_for('getstarted'))
+    # Returning visitor - show the main page
     return render_template('index.html')
+
+@app.route('/getstarted')
+def getstarted():
+    """Route handler for the get started page"""
+    return render_template('getstarted.html')
+
+@app.route('/reset-session')
+def reset_session():
+    """Helper route to reset the session (for testing)"""
+    session.clear()
+    return redirect(url_for('index'))
 
 def analyze_code_complexity(content, language):
     """Analyze code complexity metrics"""
@@ -305,9 +324,8 @@ def analyze_code_complexity(content, language):
         complexity_metrics = {
             'cyclomatic_complexity': 0,
             'max_nesting_depth': 0,
-            'cognitive_complexity': 0,
             'maintainability_index': 0,
-            'difficulty_score': 0
+            
         }
 
         if language == "python":
@@ -362,19 +380,6 @@ def analyze_code_complexity(content, language):
             
             complexity_metrics['cyclomatic_complexity'] = complexity
             
-            # Calculate cognitive complexity
-            cognitive_patterns = [
-                r'\bif\b', r'\belse\b', r'\bwhile\b', r'\bfor\b',
-                r'\bforeach\b', r'\bcase\b', r'\bcatch\b', r'\btry\b',
-                r'\?', r':\b', r'\b\|\|\b', r'\b&&\b'
-            ]
-            
-            cognitive_score = 0
-            for pattern in cognitive_patterns:
-                cognitive_score += len(re.findall(pattern, content))
-            
-            complexity_metrics['cognitive_complexity'] = cognitive_score
-            
             # Calculate difficulty score (Halstead difficulty)
             operators = len(re.findall(r'[+\-*/=<>!&|^~%]|\b(if|else|while|for|return)\b', content))
             operands = len(re.findall(r'\b[a-zA-Z_]\w*\b', content))
@@ -391,9 +396,7 @@ def analyze_code_complexity(content, language):
         return {
             'cyclomatic_complexity': 0,
             'max_nesting_depth': 0,
-            'cognitive_complexity': 0,
             'maintainability_index': 0,
-            'difficulty_score': 0,
             'error': str(e)
         }
 

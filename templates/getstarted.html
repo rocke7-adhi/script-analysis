@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Started - Code Analysis Tool</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='getstarted.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">Code Analysis Tool</a>
+            <div class="nav-links">
+                <!-- <a href="/" class="nav-link">Home</a> -->
+                <a href="/getstarted" class="nav-link active">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="hero-section">
+        <h1>Welcome to Code Analysis Tool</h1>
+        <p>Analyze your code with powerful metrics and insights</p>
+    </div>
+
+    <div class="container">
+        <div class="steps-section">
+            <h2>How to Use the Tool</h2>
+            
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Select Your Programming Language</h3>
+                    <p>Choose from multiple supported languages or use auto-detect:</p>
+                    <ul>
+                        <li>Python</li>
+                        <li>JavaScript</li>
+                        <li>Java</li>
+                        <li>C++</li>
+                        <li>And more...</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Upload Your Code</h3>
+                    <p>Two ways to input your code:</p>
+                    <ul>
+                        <li>Upload a file directly</li>
+                        <li>Copy and paste your code into the editor</li>
+                    </ul>
+                    <div class="tip">Tip: You can drag and drop files directly into the upload area</div>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Analyze Your Code</h3>
+                    <p>Get comprehensive analysis including:</p>
+                    <ul>
+                        <li>Code Metrics</li>
+                        <li>Complexity Analysis</li>
+                        <li>Structure Overview</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3>Review Results</h3>
+                    <p>Understand your code better with:</p>
+                    <ul>
+                        <li>Visual Metrics</li>
+                        <li>Detailed Reports</li>
+                        <li>Export Options</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Basic Metrics</h3>
+                <p>Analyze code structure, line counts, and basic statistics</p>
+                <button class="learn-more" data-section="basic-metrics">Learn More</button>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3>Code Structure</h3>
+                <p>Identify classes, functions, methods, and code organization</p>
+                <button class="learn-more" data-section="code-structure">Learn More</button>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <h3>Complexity Analysis</h3>
+                <p>Measure cyclomatic complexity and code maintainability</p>
+                <button class="learn-more" data-section="complexity">Learn More</button>
+            </div>
+        </div>
+
+        <div class="info-sections">
+            <section id="basic-metrics" class="info-section">
+                <h2>Basic Metrics</h2>
+                <ul>
+                    <li>Total Lines of Code</li>
+                    <li>Empty Lines</li>
+                    <li>Comment Lines</li>
+                    <li>Import Statements</li>
+                </ul>
+                <div class="example-code">
+                    <pre><code>
+        # Import statement
+        import os 
+        import sys  
+                        
+        # This is a comment line
+        def hello():  
+            print("Hello, World!") 
+                        
+        # Another comment
+        hello()  
+                        </code></pre>
+                </div>
+            </section>
+
+            <section id="code-structure" class="info-section">
+                <h2>Code Structure Analysis</h2>
+                <ul>
+                    <li>Class Definitions</li>
+                    <li>Function Declarations</li>
+                    <li>Method Implementations</li>
+                    <li>Object Instantiations</li>
+                </ul>
+                <div class="example-code">
+                    <pre><code>
+            # Class Definition
+            class Animal:  
+            # Method Implementation
+                def __init__(self, name):  
+                    self.name = name  
+            # Method Implementation    
+                def speak(self):  
+                    return "Some sound"
+            # Function Declaration    
+            def greet():  
+                print("Hello!")
+                
+            dog = Animal("Buddy")  # Object Instantiation
+            print(dog.speak())  # Calling a method
+            greet()  # Calling a function
+                    </code></pre>
+                </div>
+            </section>
+
+            <section id="complexity" class="info-section">
+                <h2>Complexity Analysis</h2>
+                <ul>
+                    <li>Cyclomatic Complexity</li>
+                    <li>Maximum Nesting Depth</li>
+                    <li>Maintainability Index</li>
+                </ul>
+                <div class="example-code">
+                    <pre><code>def complex_function(x):
+    if x > 0:
+        for i in range(x):
+            if i % 2 == 0:
+                print("Even")
+            else:
+                print("Odd")</code></pre>
+                </div>
+            </section>
+        </div>
+
+        <div class="cta-section">
+            <h2>Ready to Analyze Your Code?</h2>
+            <p>Get started with our powerful code analysis tool</p>
+            <a href="/" class="cta-button">Start Analyzing</a>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2024 Code Analysis Tool. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='getstarted.js') }}"></script>
+</body>
+</html> 

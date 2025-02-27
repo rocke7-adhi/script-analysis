@@ -180,19 +180,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span class="metric-info" title="The deepest level of nested code blocks">ⓘ</span>
                         </div>
                         <div class="metric-item">
-                            <span class="metric-label">Cognitive Complexity</span>
-                            <span class="metric-value">${data.complexity_analysis.cognitive_complexity}</span>
-                            <span class="metric-info" title="Measures how difficult the code is to understand">ⓘ</span>
-                        </div>
-                        <div class="metric-item">
                             <span class="metric-label">Maintainability Index</span>
                             <span class="metric-value">${data.complexity_analysis.maintainability_index}</span>
                             <span class="metric-info" title="Higher values indicate better maintainability">ⓘ</span>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-label">Difficulty Score</span>
-                            <span class="metric-value">${data.complexity_analysis.difficulty_score}</span>
-                            <span class="metric-info" title="Based on Halstead complexity measures">ⓘ</span>
                         </div>
                     </div>
 
