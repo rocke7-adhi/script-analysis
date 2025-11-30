@@ -98,13 +98,6 @@ Open your browser at:
 
 http://127.0.0.1:5000/
 
-You can also use `flask run` if you set FLASK_APP:
-
-```bash
-export FLASK_APP=app.py
-export FLASK_ENV=development
-flask run
-```
 
 ---
 
@@ -114,51 +107,6 @@ flask run
 - The client (static/script.js) packages the code into a file form and sends it to the backend `/analyze` endpoint using a POST request with `file` and `language` fields.
 - The Flask backend handles uploads under `/analyze`: saves the uploaded file temporarily to `uploads/`, runs heuristics and external tooling depending on the language, calculates metrics (lines, comments, imports, classes, functions), runs complexity analysis (radon for Python), and returns a JSON object containing the results.
 - Temporary uploads are removed from disk after analysis completes.
-
----
-
-## 📡 API
-
-### POST /analyze
-
-Analyze a single file or pasted code.
-
-Request (multipart/form-data):
-- file: the code file being uploaded (built by the web UI or directly sent via curl)
-- language: fallback language chosen by user (or `auto` for file extension detection)
-
-Example using curl:
-```bash
-curl -X POST \
-  -F "file=@/path/to/file.py" \
-  -F "language=python" \
-  http://127.0.0.1:5000/analyze
-```
-
-Response (JSON) — sample keys:
-- output (string): Linter/analysis output or a helpful message if tools were missing.
-- total_lines, empty_lines, comment_lines (numbers): basic metrics.
-- class_count, function_count, method_count, object_count, import_count (numbers)
-- methods, objects, classes, functions, imports, comments (arrays): extracted entries
-- code_structure (object): breakdown of class/function/method/object/import counts.
-- complexity_analysis (object): cyclomatic_complexity, max_nesting_depth, maintainability_index
-
-Example output (partial):
-```json
-{
-  "total_lines": 125,
-  "empty_lines": 8,
-  "comment_lines": 12,
-  "class_count": 2,
-  "function_count": 5,
-  "methods": ["def __init__(self, x):"],
-  "complexity_analysis": {
-    "cyclomatic_complexity": 12,
-    "max_nesting_depth": 3,
-    "maintainability_index": 78.23
-  }
-}
-```
 
 ---
 
